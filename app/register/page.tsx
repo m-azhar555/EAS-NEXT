@@ -1,5 +1,7 @@
 "use client";
 import { useState, FormEvent } from 'react';
+import toast from 'react-hot-toast';
+
 
 export default function Register() {
   const [name, setName] = useState<string>('');
@@ -21,10 +23,10 @@ export default function Register() {
         const data = await response.json();
 
         if (response.ok) {
-            alert("Registration Successful! 🎉");
+            toast.success("Registration Successful! 🎉");
             // Yahan aap user ko login page par redirect kar sakte hain
         } else {
-            alert(data.message || "Registration failed");
+            toast.error(data.message || "Registration failed");
         }
     } catch (error) {
         console.error("Error:", error);
