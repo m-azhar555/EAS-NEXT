@@ -1,5 +1,6 @@
 "use client";
 import { useState, FormEvent } from 'react';
+import toast from 'react-hot-toast';
 
 export default function Login() {
   const [email, setEmail] = useState<string>('');
@@ -23,12 +24,12 @@ export default function Login() {
         if (response.ok) {
             // Token save karna zaroori hai
             localStorage.setItem('token', data.token);
-            alert("Login Successful! 🎉");
+            toast.success("Login Successful! 🎉");
             window.location.href = '/dashboard'; 
             
             // User ko Dashboard par bhejne ke liye:
         } else {
-            alert(data.message || "Invalid Credentials");
+            toast.error(data.message || "Invalid Credentials");
         }
     } catch (error) {
         console.error("Login Error:", error);
