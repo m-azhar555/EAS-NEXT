@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff, Lock, Mail, Loader2, ArrowRight } from 'lucide-react';
 
-export default function Login() {
+export default function LoginPage() {
   const router = useRouter();
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -31,7 +31,7 @@ export default function Login() {
         localStorage.setItem('role', data.role);
         toast.success(`Welcome back! 🎉`);
 
-        const role = data.role.toLowerCase();
+        const role = data.role?.toLowerCase();
         if (role === 'admin') router.push('/admin');
         else if (role === 'manager') router.push('/manager');
         else router.push('/dashboard');
@@ -46,14 +46,12 @@ export default function Login() {
   };
 
   return (
-    /* h-screen aur z-index ensure karenge ke page har cheez ke upar dikhe */
     <div className="fixed inset-0 z-[9999] min-h-screen flex items-center justify-center bg-[#f8fafc] p-4 overflow-y-auto">
       <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 p-8 md:p-12 border border-slate-100 relative"
+        className="w-full max-w-md bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/50 p-8 md:p-12 border border-slate-100"
       >
-        {/* Header Section */}
         <div className="text-center mb-8">
           <div className="h-14 w-14 bg-indigo-600 rounded-2xl mx-auto flex items-center justify-center shadow-lg shadow-indigo-100 mb-4">
             <Lock className="text-white" size={24} />
@@ -63,7 +61,6 @@ export default function Login() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5">
-          {/* Email */}
           <div className="space-y-1.5">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Email</label>
             <div className="relative">
@@ -79,7 +76,6 @@ export default function Login() {
             </div>
           </div>
 
-          {/* Password */}
           <div className="space-y-1.5">
             <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-1">Password</label>
             <div className="relative">

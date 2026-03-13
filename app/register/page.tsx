@@ -29,7 +29,7 @@ export default function Register() {
 
       if (response.ok) {
         toast.success("Account created! Redirecting to login...");
-        setTimeout(() => router.push('/login'), 1500); // Thoda gap de kar bhejenge
+        setTimeout(() => router.push('/'), 1500); // Thoda gap de kar bhejenge
       } else {
         toast.error(data.message || "Registration failed");
       }
@@ -126,7 +126,7 @@ export default function Register() {
             Already have an account?{' '}
             {/* 🟢 Clickable Login Link */}
             <Link 
-              href="/login" 
+              href="/" 
               className="text-emerald-600 font-bold hover:underline decoration-2 underline-offset-4"
             >
               Sign In
@@ -136,4 +136,4 @@ export default function Register() {
       </motion.div>
     </div>
   );
-}s
+}
