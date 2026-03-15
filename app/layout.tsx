@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Navbar from "./components/Navbar";
+// import Navbar from "./components/Navbar";
 import { Toaster } from "react-hot-toast"; // 👈 Import add kiya
 
 const geistSans = Geist({
@@ -30,7 +30,7 @@ export default function RootLayout({
         {/* 👈 Toaster ko Navbar se upar rakha hai taake notifications top par aayein */}
         <Toaster position="top-right" reverseOrder={false} />
         
-        <Navbar /> 
+        
         
         <main>
           {children}
