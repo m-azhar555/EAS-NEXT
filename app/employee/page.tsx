@@ -51,7 +51,7 @@ export default function Dashboard() {
   const handleLogout = () => {
     localStorage.removeItem('token');
     toast.success("Logged out successfully");
-    router.push('/login');
+    router.push('/');
   };
 
   // 🟢 3. Advanced Submission Logic

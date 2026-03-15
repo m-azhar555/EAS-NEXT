@@ -9,11 +9,11 @@ const Navbar = () => { // Function define kiya
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    router.push('/login');
+    router.push('/');
   };
 
   const navLinks = [
-    { name: 'Dashboard', path: '/dashboard' },
+    { name: 'Employee', path: '/employee' },
     { name: 'Manager', path: '/manager' },
     { name: 'Admin', path: '/admin' },
   ];
