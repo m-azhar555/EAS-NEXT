@@ -103,22 +103,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-           <div className="space-y-1">
-            <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Select Role</label>
-            <div className="relative">
-              <ShieldCheck className="absolute left-4 top-3 text-slate-300" size={16} />
-              <select 
-                className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-transparent focus:border-indigo-500 rounded-xl outline-none transition-all text-sm font-bold text-slate-700 appearance-none cursor-pointer"
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                required
-              >
-                <option value="admin">Admin</option>
-                <option value="manager">Manager</option>
-                <option value="employee">Employee</option>
-              </select>
-            </div>
-          </div>
+           
 
 
           <button 
