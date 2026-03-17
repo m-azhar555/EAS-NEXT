@@ -3,6 +3,7 @@ import { useState, useEffect, FormEvent } from 'react';
 import { useRouter } from 'next/navigation'; 
 import { motion, AnimatePresence } from 'framer-motion';
 import toast from 'react-hot-toast'; 
+import Navbar from '../components/Navbar';
 import { 
   PlusCircle, 
   History, 
@@ -102,12 +103,14 @@ export default function Dashboard() {
   }
 
   return (
+    <>
+    <Navbar />
     <motion.div 
       initial={{ opacity: 0 }} 
       animate={{ opacity: 1 }}
       className="min-h-screen bg-[#f8fafc] p-4 md:p-8"
     >
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className="max-w-6xl mx-auto space-y-8 mt-14">
         
         {/* --- Top Header --- */}
         <div className="flex justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-slate-100">
@@ -115,12 +118,6 @@ export default function Dashboard() {
             <h1 className="text-2xl font-black text-slate-800 tracking-tight">Employee Portal</h1>
             <p className="text-slate-400 text-sm font-medium">Manage your reimbursements</p>
           </div>
-          <button 
-            onClick={handleLogout}
-            className="flex items-center gap-2 px-4 py-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-all font-bold text-sm"
-          >
-            <LogOut size={18} /> Logout
-          </button>
         </div>
 
         {/* --- Quick Stats --- */}
@@ -225,6 +222,7 @@ export default function Dashboard() {
         </div>
       </div>
     </motion.div>
+    </>
   );
 }
 
