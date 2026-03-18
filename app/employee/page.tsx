@@ -12,7 +12,9 @@ import {
   CheckCircle2, 
   XCircle, 
   LogOut,
-  Loader2 
+  Loader2,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 
 export default function Dashboard() {
@@ -22,6 +24,10 @@ export default function Dashboard() {
   const [expenses, setExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [isFetching, setIsFetching] = useState(true);
+
+  // --- Pagination States ---
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
 
   // 🟢 1. Data Fetching with Stats Calculation
   const fetchMyExpenses = async () => {
@@ -74,6 +80,7 @@ export default function Dashboard() {
         toast.success("Request sent to manager! 🚀"); 
         setAmount('');
         setPurpose('');
+        setCurrentPage(1); // Nayi request ke baad page 1 par wapas aayen
         fetchMyExpenses(); 
       } else {
         const data = await response.json();
@@ -92,6 +99,13 @@ export default function Dashboard() {
     pending: expenses.filter(e => e.status === 'Pending').length,
     approved: expenses.filter(e => e.status === 'Approved').length
   };
+
+  // --- Pagination Logic ---
+  const totalPages = Math.ceil(expenses.length / itemsPerPage);
+  const currentExpenses = expenses.slice(
+    (currentPage - 1) * itemsPerPage, 
+    currentPage * itemsPerPage
+  );
 
   if (isFetching) {
     return (
@@ -172,12 +186,13 @@ export default function Dashboard() {
 
           {/* --- History Table --- */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full">
               <div className="p-6 border-b border-slate-50 flex items-center gap-2">
                 <History className="text-slate-400" />
                 <h2 className="text-xl font-bold text-slate-800">Transaction History</h2>
               </div>
-              <div className="overflow-x-auto">
+              
+              <div className="overflow-x-auto flex-grow">
                 <table className="w-full text-left">
                   <thead className="bg-slate-50/50">
                     <tr className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">
@@ -188,12 +203,14 @@ export default function Dashboard() {
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-50">
-                    <AnimatePresence>
-                      {expenses.map((exp, idx) => (
+                    <AnimatePresence mode='popLayout'>
+                      {currentExpenses.map((exp: any, idx: number) => (
                         <motion.tr 
                           key={exp._id}
+                          layout
                           initial={{ opacity: 0, y: 5 }}
                           animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.95 }}
                           transition={{ delay: idx * 0.03 }}
                           className="hover:bg-slate-50/80 transition-all"
                         >
@@ -216,6 +233,31 @@ export default function Dashboard() {
                     <div className="p-20 text-center text-slate-400 italic">No records found yet.</div>
                 )}
               </div>
+
+              {/* --- Pagination Controls --- */}
+              {totalPages > 1 && (
+                <div className="p-6 border-t border-slate-50 bg-white flex justify-between items-center mt-auto">
+                  <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">
+                    Page {currentPage} of {totalPages}
+                  </p>
+                  <div className="flex gap-2">
+                    <button 
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="p-2 bg-slate-50 rounded-xl shadow-sm border border-slate-100 disabled:opacity-30 hover:text-indigo-600 transition-all hover:bg-slate-100"
+                    >
+                      <ChevronLeft size={18}/>
+                    </button>
+                    <button 
+                      onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                      disabled={currentPage === totalPages}
+                      className="p-2 bg-slate-50 rounded-xl shadow-sm border border-slate-100 disabled:opacity-30 hover:text-indigo-600 transition-all hover:bg-slate-100"
+                    >
+                      <ChevronRight size={18}/>
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 
