@@ -1,39 +1,31 @@
 "use client";
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-// Expense icons add kiye hain
-import { Search, Users, ShieldCheck, UserCog, ChevronLeft, ChevronRight, Loader2, RefreshCw, Receipt, CheckCircle, Edit3 } from 'lucide-react';
+import { Search, Users, ShieldCheck, UserCog, ChevronLeft, ChevronRight, Loader2, RefreshCw } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
+
+// 1. Navbar ko import karein
 import Navbar from '../components/Navbar'; 
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [users, setUsers] = useState<any[]>([]);
-  // --- New Expense States ---
-  const [expenses, setExpenses] = useState<any[]>([]);
-  const [revisedAmounts, setRevisedAmounts] = useState<{ [key: string]: number }>({});
-  // --------------------------
   const [searchTerm, setSearchTerm] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState<string | null>(null);
   const usersPerPage = 5;
 
+  // Security Check: Sirf Admins enter ho saken
   useEffect(() => {
     const role = localStorage.getItem('role');
     if (role !== 'admin') {
       toast.error("Unauthorized Access!");
-      router.push('/dashboard');
+      router.push('/dashboard'); // Employee dashboard par bhej dein
     }
-    fetchData(); // Dono users aur expenses load karega
+    fetchUsers();
   }, []);
-
-  const fetchData = async () => {
-    setLoading(true);
-    await Promise.all([fetchUsers(), fetchExpenses()]);
-    setLoading(false);
-  };
 
   const fetchUsers = async () => {
     const token = localStorage.getItem('token');
@@ -43,61 +35,41 @@ export default function AdminDashboard() {
       });
       const data = await res.json();
       if (res.ok) setUsers(data);
-    } catch (err) { toast.error("User Fetch Error"); }
+    } catch (err) {
+      toast.error("Server Connection Error");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // --- New Expense Logic ---
-  const fetchExpenses = async () => {
-    const token = localStorage.getItem('token');
-    try {
-      const res = await fetch('http://localhost:4000/expenses/all', {
-        headers: { 'auth-token': token || '' }
-      });
-      const data = await res.json();
-      if (res.ok) setExpenses(data);
-    } catch (err) { console.log("Expense Fetch Error"); }
-  };
-
-  const handleApproveExpense = async (expenseId: string, originalAmount: number) => {
-    const token = localStorage.getItem('token');
-    const finalAmount = revisedAmounts[expenseId] || originalAmount;
-    setIsUpdating(expenseId);
-
-    try {
-      const response = await fetch(`http://localhost:4000/expenses/approve/${expenseId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json', 'auth-token': token || '' },
-        body: JSON.stringify({ amount: finalAmount, status: 'approved' })
-      });
-      if (response.ok) {
-        toast.success("Expense Approved & Adjusted! 💸");
-        fetchExpenses();
-      }
-    } catch (error) { toast.error("Approval failed"); }
-    finally { setIsUpdating(null); }
-  };
-  // -------------------------
-
-  // Role Change Logic
   const handleRoleChange = async (userId: string, currentRole: string) => {
     const newRole = currentRole === 'admin' ? 'employee' : 'admin';
     const token = localStorage.getItem('token');
     setIsUpdating(userId);
+
     try {
         const response = await fetch(`http://localhost:4000/admin/update-role/${userId}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json', 'auth-token': token || '' },
             body: JSON.stringify({ role: newRole })
         });
-        if(response.ok) { toast.success("Role updated! 🛡️"); fetchUsers(); }
-    } catch (error) { toast.error("Update failed"); }
-    finally { setIsUpdating(null); }
+        if(response.ok) {
+            toast.success("Role updated! 🛡️");
+            fetchUsers();
+        }
+    } catch (error) {
+        toast.error("Update failed");
+    } finally {
+        setIsUpdating(null);
+    }
   };
 
+  // Search & Pagination Logic
   const filteredUsers = users.filter(user => 
     user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
+  const totalPages = Math.ceil(filteredUsers.length / usersPerPage);
   const currentUsers = filteredUsers.slice((currentPage - 1) * usersPerPage, currentPage * usersPerPage);
 
   if (loading) {
@@ -111,22 +83,24 @@ export default function AdminDashboard() {
 
   return (
     <>
+      {/* 2. Navbar yahan place karein */}
       <Navbar />
 
       <motion.div 
         initial={{ opacity: 0 }} 
         animate={{ opacity: 1 }}
-        className="min-h-screen bg-[#f1f5f9] p-6 lg:p-12 mt-14"
+        // 3. pt-28 add kiya taake Navbar ke niche se content shuru ho
+        className="min-h-screen bg-[#f1f5f9] p-6 lg:p-12"
       >
         <div className="max-w-6xl mx-auto">
           
-          {/* Header */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
+          {/* Header Section */}
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6 mt-14">
             <div>
               <h1 className="text-4xl font-black text-slate-900 tracking-tight underline decoration-indigo-500 decoration-4 underline-offset-8">
                 System Admin
               </h1>
-              <p className="text-slate-500 font-medium mt-4">Manage staff and financial approvals</p>
+              <p className="text-slate-500 font-medium mt-4">Manage organization hierarchy and access</p>
             </div>
             
             <div className="relative w-full md:w-96 group">
@@ -144,8 +118,8 @@ export default function AdminDashboard() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
             {[
               { label: 'Total Staff', val: users.length, icon: Users, color: 'text-blue-600', bg: 'bg-blue-100' },
-              { label: 'Pending Expenses', val: expenses.filter(e => e.status !== 'approved').length, icon: Receipt, color: 'text-amber-600', bg: 'bg-amber-100' },
               { label: 'Admins', val: users.filter(u => u.role === 'admin').length, icon: ShieldCheck, color: 'text-purple-600', bg: 'bg-purple-100' },
+              { label: 'Employees', val: users.filter(u => u.role === 'employee').length, icon: UserCog, color: 'text-emerald-600', bg: 'bg-emerald-100' },
             ].map((stat, i) => (
               <motion.div key={i} whileHover={{ y: -5 }} className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center gap-5">
                 <div className={`${stat.bg} ${stat.color} p-4 rounded-2xl`}><stat.icon size={28}/></div>
@@ -157,76 +131,7 @@ export default function AdminDashboard() {
             ))}
           </div>
 
-          {/* Expense Approval Section (New!) */}
-          <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">
-            <Receipt className="text-indigo-500" /> Expense Approvals
-          </h2>
-          <div className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/60 overflow-hidden border border-slate-100 mb-12">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-50/80 border-b border-slate-100">
-                  <tr>
-                    <th className="p-6 text-slate-400 font-black uppercase text-[10px] tracking-[0.2em]">Employee</th>
-                    <th className="p-6 text-slate-400 font-black uppercase text-[10px] tracking-[0.2em]">Amount (Editable)</th>
-                    <th className="p-4 text-slate-400 font-black uppercase text-[10px] tracking-[0.2em]">Status / Verifier</th>
-                    <th className="p-6 text-slate-400 font-black uppercase text-[10px] tracking-[0.2em] text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-50">
-                  {expenses.map((exp) => (
-                    <tr key={exp._id} className="hover:bg-slate-50/50 transition-all">
-                      <td className="p-6">
-                        <div className="flex flex-col">
-                          <span className="font-bold text-slate-800">{exp.createdBy?.name}</span>
-                          <span className="text-xs text-slate-400">{exp.description}</span>
-                        </div>
-                      </td>
-                      <td className="p-6">
-                        <div className="flex items-center gap-2">
-                           <input 
-                              type="number" 
-                              disabled={exp.status === 'approved'}
-                              className="w-24 p-2 bg-slate-100 rounded-lg font-bold text-indigo-600 outline-none focus:ring-2 focus:ring-indigo-400 disabled:opacity-50"
-                              defaultValue={exp.amount}
-                              onChange={(e) => setRevisedAmounts({...revisedAmounts, [exp._id]: Number(e.target.value)})}
-                           />
-                           <span className="text-xs font-bold text-slate-400">PKR</span>
-                        </div>
-                      </td>
-                      <td className="p-4">
-                        {exp.status === 'approved' ? (
-                          <div className="flex flex-col">
-                            <span className="text-emerald-600 font-black text-[10px] flex items-center gap-1">
-                              <CheckCircle size={12}/> APPROVED
-                            </span>
-                            <span className="text-[10px] font-bold text-slate-500">By: {exp.approvedBy?.name} <span className="text-indigo-400">({exp.approvedByRole})</span></span>
-                          </div>
-                        ) : (
-                          <span className="px-3 py-1 bg-amber-50 text-amber-600 rounded-full text-[10px] font-black uppercase tracking-tighter border border-amber-100">Pending</span>
-                        )}
-                      </td>
-                      <td className="p-6 text-right">
-                        {exp.status !== 'approved' && (
-                          <button 
-                            onClick={() => handleApproveExpense(exp._id, exp.amount)}
-                            disabled={isUpdating === exp._id}
-                            className="bg-indigo-600 text-white px-5 py-2 rounded-xl font-bold text-xs hover:bg-indigo-700 transition-all active:scale-95 flex items-center gap-2 ml-auto"
-                          >
-                            {isUpdating === exp._id ? <RefreshCw className="animate-spin" size={14}/> : 'Verify & Approve'}
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          {/* User Management Section */}
-          <h2 className="text-2xl font-black text-slate-800 mb-6 flex items-center gap-3">
-             <Users className="text-indigo-500" /> User Permissions
-          </h2>
+          {/* User Table Section */}
           <div className="bg-white rounded-[2.5rem] shadow-xl shadow-slate-200/60 overflow-hidden border border-slate-100">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
@@ -281,7 +186,27 @@ export default function AdminDashboard() {
               </table>
             </div>
           </div>
-          {/* Pagination yahan continue hogi... */}
+
+          {/* Pagination */}
+          <div className="mt-8 flex items-center justify-between">
+            <p className="text-slate-400 font-bold text-xs">Displaying {currentUsers.length} of {filteredUsers.length} users</p>
+            <div className="flex gap-2">
+              <button 
+                onClick={() => setCurrentPage(p => p - 1)} 
+                disabled={currentPage === 1} 
+                className="p-3 bg-white rounded-xl shadow-sm disabled:opacity-30 hover:text-indigo-600 transition-colors"
+              >
+                <ChevronLeft size={20}/>
+              </button>
+              <button 
+                onClick={() => setCurrentPage(p => p + 1)} 
+                disabled={currentPage >= totalPages} 
+                className="p-3 bg-white rounded-xl shadow-sm disabled:opacity-30 hover:text-indigo-600 transition-colors"
+              >
+                <ChevronRight size={20}/>
+              </button>
+            </div>
+          </div>
         </div>
       </motion.div>
     </>
